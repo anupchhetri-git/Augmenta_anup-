@@ -1,0 +1,3160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Augmenta — En fiktiv utopi från 1970-talet</title>
+
+  <meta
+    name="description"
+    content="Explore Augmenta, an interactive architectural experience based on a fictional 1970s utopia."
+  />
+
+  <meta
+    property="og:title"
+    content="Augmenta — En fiktiv utopi från 1970-talet"
+  />
+
+  <meta
+    property="og:description"
+    content="Explore an interactive architectural experience based on a fictional 1970s utopia."
+  />
+
+  <meta
+    property="og:type"
+    content="website"
+  />
+
+  <meta
+    property="og:image"
+    content="./images/augmenta-cover.png"
+  />
+
+  <meta
+    name="twitter:card"
+    content="summary_large_image"
+  />
+
+  <meta
+    name="theme-color"
+    content="#29271f"
+  />
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #d9e2e8;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /*
+      OPENING / LOADING SCREEN
+    */
+
+    #intro-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      overflow: hidden;
+      background: #111;
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity 900ms ease,
+        visibility 900ms ease;
+    }
+
+    #intro-screen.intro-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #intro-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.01);
+    }
+
+    #intro-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          90deg,
+          rgba(8, 11, 9, 0.86) 0%,
+          rgba(8, 11, 9, 0.62) 34%,
+          rgba(8, 11, 9, 0.22) 68%,
+          rgba(8, 11, 9, 0.08) 100%
+        ),
+        linear-gradient(
+          0deg,
+          rgba(8, 11, 9, 0.48) 0%,
+          transparent 45%
+        );
+    }
+
+    #intro-content {
+      position: absolute;
+      left: clamp(24px, 7vw, 112px);
+      bottom: clamp(34px, 10vh, 120px);
+      width: min(680px, calc(100vw - 48px));
+      color: #f6f1e7;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.42);
+    }
+
+    #intro-label {
+      margin: 0 0 16px;
+      color: rgba(246, 241, 231, 0.76);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    #intro-content h1 {
+      margin: 0;
+      font-size: clamp(52px, 8vw, 112px);
+      font-weight: 500;
+      line-height: 0.9;
+      letter-spacing: -0.045em;
+    }
+
+    #intro-content h1 span {
+      display: block;
+      max-width: 620px;
+      margin-top: 20px;
+      font-size: clamp(20px, 2.3vw, 34px);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.015em;
+    }
+
+    #intro-progress {
+      width: min(440px, 100%);
+      height: 2px;
+      margin-top: 34px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.26);
+    }
+
+    #intro-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #f6f1e7;
+      transition: width 220ms ease;
+    }
+
+    #intro-status {
+      min-height: 20px;
+      margin: 12px 0 18px;
+      color: rgba(246, 241, 231, 0.78);
+      font-size: 13px;
+      letter-spacing: 0.025em;
+    }
+
+    #intro-button {
+      min-width: 190px;
+      padding: 13px 20px;
+      border: 1px solid rgba(246, 241, 231, 0.8);
+      border-radius: 999px;
+      background: rgba(12, 15, 13, 0.2);
+      color: #f6f1e7;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition:
+        background 180ms ease,
+        color 180ms ease,
+        transform 180ms ease,
+        opacity 180ms ease;
+    }
+
+    #intro-button:not(:disabled):hover {
+      background: #f6f1e7;
+      color: #151916;
+      transform: translateY(-1px);
+    }
+
+    #intro-button:disabled {
+      opacity: 0.48;
+      cursor: wait;
+    }
+
+    #intro-screen.pointer-lock-unavailable #intro-button {
+      cursor: not-allowed;
+    }
+
+    #intro-screen.pointer-lock-unavailable #intro-status {
+      max-width: 560px;
+      line-height: 1.5;
+      text-transform: none;
+    }
+
+    #intro-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    #youtube-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 210px;
+      padding: 14px 20px;
+      border: 2px solid var(--paper-light);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--paper-light);
+      box-sizing: border-box;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      line-height: normal;
+      text-decoration: none;
+      text-transform: uppercase;
+      box-shadow: 6px 6px 0 var(--mustard);
+      transition:
+        background 160ms ease,
+        color 160ms ease,
+        transform 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    #youtube-link svg {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+      fill: currentColor;
+    }
+
+    #youtube-link:hover,
+    #youtube-link:focus-visible {
+      background: var(--orange);
+      color: #fff8e8;
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 var(--mustard);
+      outline: none;
+    }
+
+    @media (max-width: 700px) {
+      #intro-overlay {
+        background:
+          linear-gradient(
+            0deg,
+            rgba(8, 11, 9, 0.88) 0%,
+            rgba(8, 11, 9, 0.52) 62%,
+            rgba(8, 11, 9, 0.2) 100%
+          );
+      }
+
+      #intro-content {
+        left: 24px;
+        bottom: 34px;
+      }
+
+      #intro-content h1 {
+        font-size: clamp(48px, 18vw, 76px);
+      }
+
+      #intro-content h1 span {
+        margin-top: 14px;
+      }
+
+      #intro-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      #intro-button,
+      #youtube-link {
+        width: 100%;
+      }
+    }
+
+    #status {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      max-width: calc(100vw - 32px);
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.72);
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    #walk-panel {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 10;
+      width: min(310px, calc(100vw - 32px));
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.76);
+      color: white;
+      box-sizing: border-box;
+    }
+
+    #walk-help {
+      margin: 0 0 10px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    #walk-button {
+      width: 100%;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: white;
+      color: #222;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #walk-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #tour-panel {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #tour-progress {
+      margin: 0 0 8px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    #tour-button {
+      width: 100%;
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #f0f0f0;
+      color: #222;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #tour-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 11;
+      width: 6px;
+      height: 6px;
+      margin-top: -3px;
+      margin-left: -3px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65);
+      display: none;
+      pointer-events: none;
+    }
+  
+    /*
+      RELIABLE CODE-ONLY 1970s TREATMENT
+
+      This version deliberately avoids EffectComposer and extra
+      post-processing imports, so the existing loading pipeline remains
+      unchanged and dependable.
+    */
+
+    :root {
+      --paper: #e7ddc2;
+      --paper-light: #f0e8d4;
+      --ink: #29271f;
+      --mustard: #c39a39;
+      --orange: #b65f38;
+      --olive: #66684d;
+    }
+
+    html,
+    body {
+      background: #c8c0aa;
+      font-family:
+        "Arial Narrow",
+        "Helvetica Neue",
+        Helvetica,
+        Arial,
+        sans-serif;
+    }
+
+    canvas {
+      /*
+        Mild permanent grade: warm, slightly muted and softer than
+        the original modern architectural-render look.
+      */
+      filter:
+        sepia(0.17)
+        saturate(0.98)
+        contrast(1.03)
+        brightness(0.97)
+        hue-rotate(-2deg);
+    }
+
+    /*
+      A restrained vignette above the WebGL canvas but below all UI.
+      No pointer events, no additional WebGL rendering pass.
+    */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 7;
+      pointer-events: none;
+      background:
+        radial-gradient(
+          ellipse at center,
+          transparent 54%,
+          rgba(38, 28, 18, 0.22) 100%
+        );
+    }
+
+    #intro-screen {
+      background: #1e2119;
+    }
+
+    #intro-overlay {
+      background:
+        linear-gradient(
+          90deg,
+          rgba(35, 31, 22, 0.88) 0%,
+          rgba(35, 31, 22, 0.65) 36%,
+          rgba(35, 31, 22, 0.22) 70%,
+          rgba(35, 31, 22, 0.08) 100%
+        ),
+        linear-gradient(
+          0deg,
+          rgba(63, 49, 35, 0.54) 0%,
+          transparent 48%
+        );
+    }
+
+    #intro-content {
+      color: var(--paper-light);
+      text-shadow: 0 2px 20px rgba(30, 23, 17, 0.48);
+    }
+
+    #intro-label {
+      color: #d1b35c;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+    }
+
+    #intro-content h1 {
+      font-weight: 700;
+      line-height: 0.86;
+      letter-spacing: -0.055em;
+      text-transform: uppercase;
+    }
+
+    #intro-content h1 span {
+      max-width: 650px;
+      color: var(--paper-light);
+      font-weight: 500;
+      letter-spacing: 0.015em;
+      text-transform: none;
+    }
+
+    #intro-progress {
+      height: 4px;
+      background: rgba(231, 221, 194, 0.28);
+    }
+
+    #intro-progress-bar {
+      background: var(--mustard);
+    }
+
+    #intro-status {
+      color: rgba(240, 232, 212, 0.82);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    #intro-button {
+      min-width: 210px;
+      padding: 14px 20px;
+      border: 2px solid var(--paper-light);
+      border-radius: 2px;
+      background: var(--ink);
+      color: var(--paper-light);
+      font-size: 13px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      backdrop-filter: none;
+      box-shadow: 6px 6px 0 var(--orange);
+    }
+
+    #intro-button:not(:disabled):hover {
+      background: var(--orange);
+      color: #fff8e8;
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 var(--mustard);
+    }
+
+    #status {
+      top: 14px;
+      left: 14px;
+      padding: 9px 11px;
+      border: 1px solid var(--ink);
+      border-radius: 0;
+      background: rgba(231, 221, 194, 0.92);
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 rgba(41, 39, 31, 0.78);
+    }
+
+    #walk-panel {
+      right: 16px;
+      bottom: 16px;
+      padding: 16px;
+      border: 2px solid var(--ink);
+      border-radius: 0;
+      background: rgba(231, 221, 194, 0.95);
+      color: var(--ink);
+      box-shadow: 7px 7px 0 rgba(182, 95, 56, 0.88);
+    }
+
+    #walk-help {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.5;
+      letter-spacing: 0.02em;
+    }
+
+    #walk-button,
+    #tour-button {
+      border: 2px solid var(--ink);
+      border-radius: 0;
+      background: var(--ink);
+      color: var(--paper-light);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition:
+        background 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+    }
+
+    #walk-button:hover:not(:disabled),
+    #tour-button:hover:not(:disabled) {
+      background: var(--orange);
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    #tour-panel {
+      border-top: 2px solid rgba(41, 39, 31, 0.55);
+    }
+
+    #tour-progress {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    #crosshair {
+      width: 8px;
+      height: 8px;
+      margin-top: -4px;
+      margin-left: -4px;
+      border-radius: 0;
+      background: var(--mustard);
+      box-shadow:
+        0 0 0 1px rgba(41, 39, 31, 0.85),
+        0 0 12px rgba(195, 154, 57, 0.65);
+    }
+
+  
+    /*
+      WALK-MODE UI CLEANUP
+
+      The information boxes remain available outside Pointer Lock,
+      but disappear completely while the visitor is walking.
+    */
+    body.walking-active #status {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /*
+      Keep the Walk instructions visible, but hide the tour section
+      so only the compact movement information box remains.
+    */
+    body.walking-active #walk-panel {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: none;
+    }
+
+    body.walking-active #tour-panel {
+      display: none !important;
+    }
+
+    #status,
+    #walk-panel {
+      transition:
+        opacity 220ms ease,
+        visibility 220ms ease;
+    }
+
+  
+    /*
+      FINAL INTRO ACTION PLACEMENT
+
+      The primary action is larger on the left. The YouTube action is
+      positioned independently near the lower-right corner of the cover.
+    */
+    #intro-actions {
+      display: block;
+    }
+
+    #intro-button {
+      min-width: 250px;
+      padding: 17px 28px;
+      font-size: 14px;
+      letter-spacing: 0.12em;
+    }
+
+    #youtube-link {
+      position: fixed;
+      right: clamp(32px, 7vw, 120px);
+      bottom: clamp(44px, 10vh, 120px);
+      z-index: 102;
+      min-width: 220px;
+      padding: 15px 22px;
+      background: rgba(41, 39, 31, 0.78);
+    }
+
+    @media (max-width: 700px) {
+      #intro-actions {
+        display: flex;
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      #intro-button,
+      #youtube-link {
+        width: 100%;
+      }
+
+      #youtube-link {
+        position: static;
+        min-width: 0;
+        margin-top: 14px;
+      }
+    }
+
+    /*
+      CINEMATIC CUT TRANSITION
+
+      Used when jumping between tour locations. The overlay creates
+      a short film-style fade without adding a WebGL post-process pass.
+    */
+    #fade-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      pointer-events: none;
+      background: #11100d;
+      opacity: 0;
+      transition: opacity 280ms ease;
+    }
+
+    #fade-overlay.fade-visible {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #fade-overlay {
+        transition-duration: 1ms;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="intro-screen">
+    <img
+      id="intro-image"
+      src="./images/augmenta-cover.png"
+      alt="Aerial view of Augmenta"
+    />
+
+    <div id="intro-overlay"></div>
+
+    <div id="intro-content">
+      <p id="intro-label">Interactive Experience</p>
+
+      <h1>
+        Augmenta
+        <span>
+          En fiktiv utopi från 1970-talet
+        </span>
+      </h1>
+
+      <div
+        id="intro-progress"
+        role="progressbar"
+        aria-label="Loading progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+        <div id="intro-progress-bar"></div>
+      </div>
+
+      <p id="intro-status" aria-live="polite">
+        Loading…
+      </p>
+
+      <div id="intro-actions">
+        <button
+          id="intro-button"
+          type="button"
+          disabled
+        >
+          Loading…
+        </button>
+
+        <a
+          id="youtube-link"
+          href="https://www.youtube.com/watch?v=tPzhSD0b1Zw"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Watch the Augmenta animation on YouTube"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"
+            />
+          </svg>
+
+          <span>Watch Animation</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="status">Preparing village models...</div>
+
+  <div id="walk-panel">
+    <p id="walk-help">
+      Orbit mode: drag to rotate, use the mouse wheel to zoom,
+      and right-drag to pan. In Walk mode, hold Shift to run.
+    </p>
+
+    <button id="walk-button" type="button" disabled>
+      Preparing Walk Mode...
+    </button>
+
+    <div id="tour-panel">
+      <p id="tour-progress">
+        Tour locations are loading...
+      </p>
+
+      <button id="tour-button" type="button" disabled>
+        Next Location
+      </button>
+    </div>
+  </div>
+
+  <div id="crosshair"></div>
+
+  <div id="fade-overlay"></div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.164.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+
+    import { GLTFLoader }
+      from "three/addons/loaders/GLTFLoader.js";
+
+    import { DRACOLoader }
+      from "three/addons/loaders/DRACOLoader.js";
+
+    import { OrbitControls }
+      from "three/addons/controls/OrbitControls.js";
+
+    import { PointerLockControls }
+      from "three/addons/controls/PointerLockControls.js";
+
+    const introScreen = document.getElementById("intro-screen");
+    const introProgress = document.getElementById("intro-progress");
+    const introProgressBar = document.getElementById("intro-progress-bar");
+    const introStatus = document.getElementById("intro-status");
+    const introButton = document.getElementById("intro-button");
+
+    /*
+      WALK-MODE SUPPORT
+
+      Pointer Lock is required for mouse-look. Some mobile browsers,
+      especially iOS Safari, do not support it. The YouTube animation
+      remains available even when the interactive Walk mode is not.
+    */
+    const pointerLockSupported =
+      "pointerLockElement" in document &&
+      typeof document.body.requestPointerLock ===
+        "function";
+
+    const status = document.getElementById("status");
+    const walkButton = document.getElementById("walk-button");
+    const walkHelp = document.getElementById("walk-help");
+    const crosshair = document.getElementById("crosshair");
+    const tourPanel = document.getElementById("tour-panel");
+    const tourProgress = document.getElementById("tour-progress");
+    const tourButton = document.getElementById("tour-button");
+    const fadeOverlay = document.getElementById("fade-overlay");
+
+    const scene = new THREE.Scene();
+
+    /*
+      SKY + DISTANCE FOG
+
+      The fog color matches the background so distant objects fade
+      naturally instead of being cut off sharply.
+    */
+    const skyColor = 0xb8bdad;
+
+    scene.background =
+      new THREE.Color(skyColor);
+
+    scene.fog =
+      new THREE.FogExp2(
+        skyColor,
+        0.00045
+      );
+
+    const camera = new THREE.PerspectiveCamera(
+      50,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      5000
+    );
+
+    camera.position.set(12, 8, 12);
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+
+    /*
+      Lowering the maximum pixel ratio is one of the easiest ways
+      to improve performance on high-resolution displays.
+    */
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 1.25)
+    );
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type =
+      THREE.PCFSoftShadowMap;
+
+    /*
+      The village and sunlight are static, so the shadow map is
+      generated when loading finishes and then reused.
+    */
+    renderer.shadowMap.autoUpdate = false;
+
+    renderer.outputColorSpace =
+      THREE.SRGBColorSpace;
+
+    renderer.toneMapping =
+      THREE.ACESFilmicToneMapping;
+
+    renderer.toneMappingExposure = 0.88;
+
+    document.body.appendChild(
+      renderer.domElement
+    );
+
+    /*
+      ORBIT CONTROLS
+    */
+
+    const orbitControls = new OrbitControls(
+      camera,
+      renderer.domElement
+    );
+
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.06;
+
+    /*
+      WALK CONTROLS
+    */
+
+    const walkControls = new PointerLockControls(
+      camera,
+      document.body
+    );
+
+    const keys = {
+      forward: false,
+      backward: false,
+      left: false,
+      right: false,
+      run: false
+    };
+
+    const clock = new THREE.Clock();
+    let pageVisible =
+      document.visibilityState ===
+      "visible";
+
+    const eyeHeight = 2.2;
+    const walkGroundY = 1;
+
+    const walkSpeed = 12;
+    const runSpeed = 30;
+
+    /*
+      GROUND FOLLOWING SETTINGS
+    */
+    const groundRayStartHeight = 40;
+    const groundRayDistance = 100;
+    const groundHeightSmoothing = 14;
+
+    /*
+      GROUND-SAMPLING OPTIMIZATION
+
+      A new downward ray is only required after the camera has moved
+      horizontally. The cached target height is still smoothed every
+      frame, so slopes remain visually fluid.
+    */
+    const groundSampleDistance = 0.35;
+
+    const lastGroundSamplePosition =
+      new THREE.Vector3(
+        Number.POSITIVE_INFINITY,
+        0,
+        Number.POSITIVE_INFINITY
+      );
+
+    let cachedGroundTargetY = null;
+
+    /*
+      LOCAL SHADOW SETTINGS
+
+      Orbit mode uses a wider shadow area.
+      Walk mode uses a smaller, sharper shadow area that follows
+      the player, but only updates after the player has moved a
+      meaningful distance.
+    */
+    const orbitShadowHalfSize = 180;
+    const walkShadowHalfSize = 70;
+    const shadowUpdateDistance = 12;
+
+    const sunOffset =
+      new THREE.Vector3(
+        180,
+        85,
+        120
+      );
+
+    const lastShadowPosition =
+      new THREE.Vector3(
+        Number.POSITIVE_INFINITY,
+        0,
+        Number.POSITIVE_INFINITY
+      );
+
+    const villageShadowTarget =
+      new THREE.Vector3();
+
+    /*
+      COLLISION SETTINGS
+    */
+
+    const playerRadius = 0.55;
+    const collisionPadding = 0.08;
+
+    /*
+      Two rays are used instead of three:
+      one around the lower body and one around the upper body.
+    */
+    const collisionCheckHeights = [
+      0.45,
+      1.45
+    ];
+
+    /*
+      Collision meshes are placed into a simple X/Z grid once.
+      During movement, only nearby grid cells are raycast.
+    */
+    const collisionCellSize = 20;
+    const maxCellsPerMesh = 400;
+
+    const showCollisionModel = false;
+
+    const collisionMeshes = [];
+    const collisionGrid = new Map();
+    const globalCollisionMeshes = [];
+    const nearbyCollisionMeshes = [];
+
+    /*
+      WALKABLE GROUND
+
+      The meshes from base.glb are used for downward ground detection.
+      This lets the camera follow slopes and changes in elevation.
+    */
+    const groundMeshes = [];
+
+    const groundRaycaster =
+      new THREE.Raycaster();
+
+    const groundRayOrigin =
+      new THREE.Vector3();
+
+    const groundRayDirection =
+      new THREE.Vector3(0, -1, 0);
+
+    const collisionRaycaster =
+      new THREE.Raycaster();
+
+    const moveDirection =
+      new THREE.Vector3();
+
+    const forwardDirection =
+      new THREE.Vector3();
+
+    const rightDirection =
+      new THREE.Vector3();
+
+    const testDirection =
+      new THREE.Vector3();
+
+    const testOrigin =
+      new THREE.Vector3();
+
+    const xMovement =
+      new THREE.Vector3();
+
+    const zMovement =
+      new THREE.Vector3();
+
+    const meshWorldBounds =
+      new THREE.Box3();
+
+    let collisionQueryStamp = 0;
+    let villageLoaded = false;
+    let collisionLoaded = false;
+
+    const walkSpawn = new THREE.Vector3(
+      0,
+      walkGroundY + eyeHeight,
+      25
+    );
+
+    const savedOrbitPosition =
+      new THREE.Vector3();
+
+    const savedOrbitTarget =
+      new THREE.Vector3();
+
+    /*
+      SEQUENTIAL TOUR
+
+      spawn.glb may contain any number of Empty objects named:
+      SPAWN_loc1, SPAWN_loc2, SPAWN_loc3, and so on.
+
+      They are discovered automatically and sorted numerically.
+    */
+    const tourLocationPrefix =
+      "SPAWN_loc";
+
+    const tourLocationPattern =
+      /^SPAWN_loc(\d+)$/i;
+
+    const tourLocations = [];
+    let currentTourIndex = 0;
+
+    const waypointWorldPosition =
+      new THREE.Vector3();
+
+    const waypointWorldQuaternion =
+      new THREE.Quaternion();
+
+    const waypointForward =
+      new THREE.Vector3();
+
+    /*
+      FORWARD DIRECTION OF THE EXPORTED SINGLE ARROW
+
+      For this spawn.glb export, the Blender Single Arrow's arrowhead
+      direction maps to the node's local +Y axis in Three.js.
+    */
+    const spawnArrowForwardAxis =
+      new THREE.Vector3(0, 1, 0);
+
+    let fadeTransitionActive = false;
+
+    function fadeTransition(callback) {
+      if (fadeTransitionActive) {
+        return;
+      }
+
+      fadeTransitionActive = true;
+      clearMovementKeys();
+
+      fadeOverlay.classList.add(
+        "fade-visible"
+      );
+
+      window.setTimeout(
+        function () {
+          callback();
+
+          requestAnimationFrame(
+            function () {
+              requestAnimationFrame(
+                function () {
+                  fadeOverlay.classList.remove(
+                    "fade-visible"
+                  );
+
+                  window.setTimeout(
+                    function () {
+                      fadeTransitionActive = false;
+                    },
+                    300
+                  );
+                }
+              );
+            }
+          );
+        },
+        290
+      );
+    }
+
+    function clearMovementKeys() {
+      keys.forward = false;
+      keys.backward = false;
+      keys.left = false;
+      keys.right = false;
+      keys.run = false;
+    }
+
+    function setMovementKey(code, isDown) {
+      if (
+        code === "KeyW" ||
+        code === "ArrowUp"
+      ) {
+        keys.forward = isDown;
+      }
+
+      if (
+        code === "KeyS" ||
+        code === "ArrowDown"
+      ) {
+        keys.backward = isDown;
+      }
+
+      if (
+        code === "KeyA" ||
+        code === "ArrowLeft"
+      ) {
+        keys.left = isDown;
+      }
+
+      if (
+        code === "KeyD" ||
+        code === "ArrowRight"
+      ) {
+        keys.right = isDown;
+      }
+
+      if (
+        code === "ShiftLeft" ||
+        code === "ShiftRight"
+      ) {
+        keys.run = isDown;
+      }
+    }
+
+    document.addEventListener(
+      "keydown",
+      function (event) {
+        setMovementKey(event.code, true);
+
+        if (
+          event.code === "KeyT" &&
+          !event.repeat &&
+          tourLocations.length > 0
+        ) {
+          goToNextTourLocation();
+        }
+      }
+    );
+
+    document.addEventListener(
+      "keyup",
+      function (event) {
+        setMovementKey(event.code, false);
+      }
+    );
+
+    window.addEventListener(
+      "blur",
+      clearMovementKeys
+    );
+
+    function startWalkMode() {
+      if (
+        !villageLoaded ||
+        !pointerLockSupported
+      ) {
+        return;
+      }
+
+      resetGroundSample();
+
+      savedOrbitPosition.copy(
+        camera.position
+      );
+
+      savedOrbitTarget.copy(
+        orbitControls.target
+      );
+
+      /*
+        Disable OrbitControls before positioning the Walk camera.
+
+        Pointer Lock is granted asynchronously by the browser. Without
+        this, OrbitControls can run for one more animation frame and
+        overwrite SPAWN_loc1's arrow-facing camera direction before
+        the Pointer Lock "lock" event arrives.
+      */
+      orbitControls.enabled = false;
+
+      /*
+        Every new experience starts at the first tour location.
+      */
+      currentTourIndex = 0;
+
+      if (tourLocations.length > 0) {
+        placeCameraAtTourLocation(
+          currentTourIndex,
+          true
+        );
+      } else {
+        camera.position.copy(
+          walkSpawn
+        );
+
+        camera.lookAt(
+          0,
+          walkGroundY + eyeHeight,
+          0
+        );
+      }
+
+      /*
+        This must run directly from a user's click so the browser
+        permits Pointer Lock and mouse-look.
+      */
+      walkControls.lock();
+    }
+
+    walkButton.addEventListener(
+      "click",
+      startWalkMode
+    );
+
+    walkControls.addEventListener(
+      "lock",
+      function () {
+        document.body.classList.add(
+          "walking-active"
+        );
+
+        orbitControls.enabled = false;
+
+        /*
+          Reapply the active waypoint direction only after Pointer Lock
+          has actually been granted. Some browsers can preserve or
+          restore the previous camera orientation during the transition
+          into Pointer Lock, which can overwrite SPAWN_loc1's direction.
+        */
+        const activeTourLocation =
+          tourLocations[currentTourIndex];
+
+        if (activeTourLocation) {
+          applyTourDirection(
+            activeTourLocation
+          );
+
+          camera.updateMatrixWorld(true);
+
+          /*
+            Apply it once more on the next frame so the first rendered
+            Walk frame also uses the Blender arrow direction.
+          */
+          requestAnimationFrame(
+            function () {
+              if (
+                walkControls.isLocked &&
+                tourLocations[currentTourIndex]
+              ) {
+                applyTourDirection(
+                  tourLocations[currentTourIndex]
+                );
+
+                camera.updateMatrixWorld(true);
+              }
+            }
+          );
+        }
+
+        crosshair.style.display = "block";
+
+        lastShadowPosition.set(
+          Number.POSITIVE_INFINITY,
+          0,
+          Number.POSITIVE_INFINITY
+        );
+
+        updateWalkShadows(true);
+
+        walkButton.textContent =
+          "Walking...";
+
+        updateTourInterface();
+
+        walkHelp.textContent =
+          "Walk mode: W, A, S and D move. Hold Shift to run. Press T to jump to the next tour location. Press Esc to return.";
+      }
+    );
+
+    document.addEventListener(
+      "pointerlockerror",
+      function () {
+        clearMovementKeys();
+
+        orbitControls.enabled = true;
+        orbitControls.update();
+
+        crosshair.style.display = "none";
+
+        document.body.classList.remove(
+          "walking-active"
+        );
+
+        showIntroScreen();
+
+        introStatus.textContent =
+          "Walk mode could not start in this browser. You can still watch the Augmenta animation.";
+      }
+    );
+
+    walkControls.addEventListener(
+      "unlock",
+      function () {
+        document.body.classList.remove(
+          "walking-active"
+        );
+
+        clearMovementKeys();
+
+        camera.position.copy(
+          savedOrbitPosition
+        );
+
+        orbitControls.target.copy(
+          savedOrbitTarget
+        );
+
+        orbitControls.enabled = true;
+        orbitControls.update();
+
+        configureOrbitShadows();
+
+        crosshair.style.display = "none";
+
+        walkButton.textContent =
+          "Enter Walk Mode";
+
+        walkHelp.textContent =
+          "Orbit mode: drag to rotate, use the mouse wheel to zoom, and right-drag to pan. Use the tour button to preview locations.";
+
+        updateTourInterface();
+
+        /*
+          Pointer Lock releases when the user presses Escape.
+          Return to the opening screen instead of leaving the user
+          in the Orbit-mode interface.
+        */
+        showIntroScreen();
+      }
+    );
+
+    /*
+      LIGHTING
+    */
+
+    const hemisphereLight =
+      new THREE.HemisphereLight(
+        0xfff3db,
+        0x5e6355,
+        0.55
+      );
+
+    scene.add(hemisphereLight);
+
+    const sun =
+      new THREE.DirectionalLight(
+        0xffd59e,
+        1.75
+      );
+
+    sun.position.copy(sunOffset);
+    sun.castShadow = true;
+
+    /*
+      1024 is a better performance/quality balance for this scene.
+      The shadow map contains one quarter of the texels of 2048.
+    */
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 650;
+    sun.shadow.bias = -0.0012;
+    sun.shadow.normalBias = 0.025;
+
+    scene.add(sun);
+    scene.add(sun.target);
+
+    function setShadowArea(halfSize) {
+      sun.shadow.camera.left =
+        -halfSize;
+
+      sun.shadow.camera.right =
+        halfSize;
+
+      sun.shadow.camera.top =
+        halfSize;
+
+      sun.shadow.camera.bottom =
+        -halfSize;
+
+      sun.shadow.camera
+        .updateProjectionMatrix();
+    }
+
+    function positionSunOver(targetPosition) {
+      sun.position.set(
+        targetPosition.x + sunOffset.x,
+        targetPosition.y + sunOffset.y,
+        targetPosition.z + sunOffset.z
+      );
+
+      sun.target.position.copy(
+        targetPosition
+      );
+
+      sun.updateMatrixWorld(true);
+      sun.target.updateMatrixWorld(true);
+
+      renderer.shadowMap.needsUpdate =
+        true;
+    }
+
+    function configureOrbitShadows() {
+      setShadowArea(
+        orbitShadowHalfSize
+      );
+
+      positionSunOver(
+        villageShadowTarget
+      );
+    }
+
+    function updateWalkShadows(force = false) {
+      if (
+        !force &&
+        lastShadowPosition
+          .distanceToSquared(
+            camera.position
+          ) <
+          shadowUpdateDistance *
+          shadowUpdateDistance
+      ) {
+        return;
+      }
+
+      lastShadowPosition.copy(
+        camera.position
+      );
+
+      setShadowArea(
+        walkShadowHalfSize
+      );
+
+      positionSunOver(
+        camera.position
+      );
+    }
+
+
+    function refreshCurrentShadows() {
+      if (walkControls.isLocked) {
+        updateWalkShadows(true);
+      } else {
+        configureOrbitShadows();
+      }
+    }
+
+    /*
+      VISUAL AND COLLISION GROUPS
+
+      The collision model receives the same centering offset,
+      but does not influence the camera framing or village bounds.
+    */
+
+    const visualVillageGroup =
+      new THREE.Group();
+
+    const collisionGroup =
+      new THREE.Group();
+
+    const spawnGroup =
+      new THREE.Group();
+
+    scene.add(visualVillageGroup);
+    scene.add(collisionGroup);
+    scene.add(spawnGroup);
+
+    const modelFiles = [
+      "./models/base.glb",
+      "./models/building.glb",
+      "./models/building2.glb",
+      "./models/building3.glb",
+      "./models/trees.glb"
+    ];
+
+    const collisionFile =
+      "./models/collision.glb";
+
+    const spawnFile =
+      "./models/spawn.glb";
+
+    const filesToLoad = [
+      ...modelFiles,
+      collisionFile,
+      spawnFile
+    ];
+
+    const loader =
+      new GLTFLoader();
+
+    /*
+      DRACO-COMPRESSED GLB SUPPORT
+
+      Models optimized with Draco require a decoder before GLTFLoader
+      can read their compressed geometry.
+    */
+    const dracoLoader =
+      new DRACOLoader();
+
+    dracoLoader.setDecoderPath(
+      "https://unpkg.com/three@0.164.0/examples/jsm/libs/draco/"
+    );
+
+    dracoLoader.setDecoderConfig({
+      type: "wasm"
+    });
+
+    loader.setDRACOLoader(
+      dracoLoader
+    );
+
+    const loadingProgress =
+      new Map();
+
+    function updateLoadingStatus() {
+      let totalProgress = 0;
+
+      for (const file of filesToLoad) {
+        totalProgress +=
+          loadingProgress.get(file) || 0;
+      }
+
+      const averageProgress =
+        Math.round(
+          totalProgress /
+          filesToLoad.length
+        );
+
+      status.textContent =
+        "Loading village models... " +
+        averageProgress +
+        "%";
+
+      introProgressBar.style.width =
+        averageProgress + "%";
+
+      introProgress.setAttribute(
+        "aria-valuenow",
+        String(averageProgress)
+      );
+
+      introStatus.textContent =
+        "Loading village… " +
+        averageProgress +
+        "%";
+    }
+
+    function markIntroReady() {
+      introProgressBar.style.width =
+        "100%";
+
+      introProgress.setAttribute(
+        "aria-valuenow",
+        "100"
+      );
+
+      if (!pointerLockSupported) {
+        introScreen.classList.add(
+          "pointer-lock-unavailable"
+        );
+
+        introStatus.textContent =
+          "The interactive Walk experience requires a desktop or laptop browser with a mouse and keyboard. You can still watch the Augmenta animation.";
+
+        introButton.disabled = true;
+        introButton.textContent =
+          "Desktop Experience Only";
+
+        return;
+      }
+
+      introScreen.classList.remove(
+        "pointer-lock-unavailable"
+      );
+
+      introStatus.textContent =
+        "The village is ready to explore.";
+
+      introButton.disabled = false;
+      introButton.textContent =
+        "Enter Experience";
+    }
+
+    function markIntroFailed(message) {
+      introStatus.textContent =
+        message;
+
+      introButton.disabled = true;
+      introButton.textContent =
+        "Unable to load";
+    }
+
+    function hideIntroScreen() {
+      introScreen.classList.add(
+        "intro-hidden"
+      );
+
+      window.setTimeout(
+        function () {
+          if (
+            introScreen.classList.contains(
+              "intro-hidden"
+            )
+          ) {
+            introScreen.style.display =
+              "none";
+          }
+        },
+        950
+      );
+    }
+
+    function showIntroScreen() {
+      /*
+        Restore the cover before removing the hidden class so the
+        browser can animate the opacity back to full visibility.
+      */
+      introScreen.style.display =
+        "block";
+
+      if (pointerLockSupported) {
+        introButton.disabled = false;
+        introButton.textContent =
+          "Enter Experience";
+
+        introStatus.textContent =
+          "The village is ready to explore.";
+      } else {
+        introScreen.classList.add(
+          "pointer-lock-unavailable"
+        );
+
+        introButton.disabled = true;
+        introButton.textContent =
+          "Desktop Experience Only";
+
+        introStatus.textContent =
+          "The interactive Walk experience requires a desktop or laptop browser with a mouse and keyboard. You can still watch the Augmenta animation.";
+      }
+
+      introProgressBar.style.width =
+        "100%";
+
+      introProgress.setAttribute(
+        "aria-valuenow",
+        "100"
+      );
+
+      requestAnimationFrame(
+        function () {
+          requestAnimationFrame(
+            function () {
+              introScreen.classList.remove(
+                "intro-hidden"
+              );
+            }
+          );
+        }
+      );
+    }
+
+    introButton.addEventListener(
+      "click",
+      function () {
+        if (!villageLoaded) {
+          return;
+        }
+
+        /*
+          Start Walk mode during this same user click. Pointer Lock
+          requires a direct user interaction in most browsers.
+        */
+        startWalkMode();
+        hideIntroScreen();
+      }
+    );
+
+    function loadModel(
+      filePath,
+      isCollisionModel = false
+    ) {
+      loadingProgress.set(filePath, 0);
+
+      return new Promise(
+        function (resolve, reject) {
+          loader.load(
+            filePath,
+
+            function (gltf) {
+              const model = gltf.scene;
+
+              model.name = filePath
+                .split("/")
+                .pop()
+                .replace(".glb", "");
+
+              const isBase =
+                filePath.endsWith("/base.glb");
+
+              const isTrees =
+                filePath.endsWith("/trees.glb");
+
+              model.traverse(
+                function (object) {
+                  if (!object.isMesh) {
+                    return;
+                  }
+
+                  if (isCollisionModel) {
+                    collisionMeshes.push(object);
+
+                    object.castShadow = false;
+                    object.receiveShadow = false;
+
+                    if (showCollisionModel) {
+                      object.material =
+                        new THREE.MeshBasicMaterial({
+                          color: 0xff0033,
+                          wireframe: true,
+                          transparent: true,
+                          opacity: 0.35,
+                          depthWrite: false
+                        });
+                    } else if (
+                      Array.isArray(object.material)
+                    ) {
+                      for (
+                        const material
+                        of object.material
+                      ) {
+                        material.visible = false;
+                      }
+                    } else if (object.material) {
+                      object.material.visible = false;
+                    }
+                  } else {
+                    /*
+                      The base receives shadows but does not cast them.
+                      Buildings cast and receive shadows.
+                    */
+                    object.castShadow =
+                      !isBase &&
+                      !isTrees;
+
+                    object.receiveShadow = true;
+
+                    if (isBase) {
+                      groundMeshes.push(object);
+                    }
+                  }
+                }
+              );
+
+              loadingProgress.set(
+                filePath,
+                100
+              );
+
+              updateLoadingStatus();
+
+              resolve(model);
+            },
+
+            function (progress) {
+              if (progress.total > 0) {
+                const percent =
+                  Math.round(
+                    progress.loaded /
+                    progress.total *
+                    100
+                  );
+
+                loadingProgress.set(
+                  filePath,
+                  percent
+                );
+
+                updateLoadingStatus();
+              }
+            },
+
+            function (error) {
+              reject({
+                filePath,
+                error
+              });
+            }
+          );
+        }
+      );
+    }
+
+    function loadSpawnModel(filePath) {
+      loadingProgress.set(filePath, 0);
+
+      return new Promise(
+        function (resolve, reject) {
+          loader.load(
+            filePath,
+
+            function (gltf) {
+              const model = gltf.scene;
+              model.name = "spawn";
+
+              /*
+                Empty objects do not render. If spawn.glb accidentally
+                contains meshes, hide them so only the nodes are used.
+              */
+              model.traverse(
+                function (object) {
+                  if (object.isMesh) {
+                    object.visible = false;
+                    object.castShadow = false;
+                    object.receiveShadow = false;
+                  }
+                }
+              );
+
+              loadingProgress.set(
+                filePath,
+                100
+              );
+
+              updateLoadingStatus();
+              resolve(model);
+            },
+
+            function (progress) {
+              if (progress.total > 0) {
+                const percent =
+                  Math.round(
+                    progress.loaded /
+                    progress.total *
+                    100
+                  );
+
+                loadingProgress.set(
+                  filePath,
+                  percent
+                );
+
+                updateLoadingStatus();
+              }
+            },
+
+            function (error) {
+              reject({
+                filePath,
+                error
+              });
+            }
+          );
+        }
+      );
+    }
+
+    function getGridKey(cellX, cellZ) {
+      return cellX + "," + cellZ;
+    }
+
+    function buildCollisionGrid() {
+      collisionGrid.clear();
+      globalCollisionMeshes.length = 0;
+
+      for (
+        const mesh
+        of collisionMeshes
+      ) {
+        mesh.updateWorldMatrix(
+          true,
+          false
+        );
+
+        meshWorldBounds.setFromObject(mesh);
+
+        /*
+          Store a permanent world-space box.
+          It is calculated once, not every frame.
+        */
+        mesh.userData.collisionBounds =
+          meshWorldBounds.clone();
+
+        const minCellX =
+          Math.floor(
+            meshWorldBounds.min.x /
+            collisionCellSize
+          );
+
+        const maxCellX =
+          Math.floor(
+            meshWorldBounds.max.x /
+            collisionCellSize
+          );
+
+        const minCellZ =
+          Math.floor(
+            meshWorldBounds.min.z /
+            collisionCellSize
+          );
+
+        const maxCellZ =
+          Math.floor(
+            meshWorldBounds.max.z /
+            collisionCellSize
+          );
+
+        const cellCount =
+          (maxCellX - minCellX + 1) *
+          (maxCellZ - minCellZ + 1);
+
+        /*
+          Extremely large meshes are kept in a separate list.
+          This prevents one mesh from filling thousands of grid cells.
+        */
+        if (cellCount > maxCellsPerMesh) {
+          globalCollisionMeshes.push(mesh);
+          continue;
+        }
+
+        for (
+          let cellX = minCellX;
+          cellX <= maxCellX;
+          cellX++
+        ) {
+          for (
+            let cellZ = minCellZ;
+            cellZ <= maxCellZ;
+            cellZ++
+          ) {
+            const key =
+              getGridKey(cellX, cellZ);
+
+            let cell =
+              collisionGrid.get(key);
+
+            if (!cell) {
+              cell = [];
+              collisionGrid.set(
+                key,
+                cell
+              );
+            }
+
+            cell.push(mesh);
+          }
+        }
+      }
+    }
+
+    function collectNearbyCollisionMeshes(
+      position,
+      radius
+    ) {
+      nearbyCollisionMeshes.length = 0;
+      collisionQueryStamp++;
+
+      const minCellX =
+        Math.floor(
+          (position.x - radius) /
+          collisionCellSize
+        );
+
+      const maxCellX =
+        Math.floor(
+          (position.x + radius) /
+          collisionCellSize
+        );
+
+      const minCellZ =
+        Math.floor(
+          (position.z - radius) /
+          collisionCellSize
+        );
+
+      const maxCellZ =
+        Math.floor(
+          (position.z + radius) /
+          collisionCellSize
+        );
+
+      function addMesh(mesh) {
+        if (
+          mesh.userData.collisionQueryStamp ===
+          collisionQueryStamp
+        ) {
+          return;
+        }
+
+        mesh.userData.collisionQueryStamp =
+          collisionQueryStamp;
+
+        nearbyCollisionMeshes.push(mesh);
+      }
+
+      for (
+        const mesh
+        of globalCollisionMeshes
+      ) {
+        addMesh(mesh);
+      }
+
+      for (
+        let cellX = minCellX;
+        cellX <= maxCellX;
+        cellX++
+      ) {
+        for (
+          let cellZ = minCellZ;
+          cellZ <= maxCellZ;
+          cellZ++
+        ) {
+          const cell =
+            collisionGrid.get(
+              getGridKey(
+                cellX,
+                cellZ
+              )
+            );
+
+          if (!cell) {
+            continue;
+          }
+
+          for (const mesh of cell) {
+            addMesh(mesh);
+          }
+        }
+      }
+
+      return nearbyCollisionMeshes;
+    }
+
+    function getGroundHeightAt(
+      x,
+      z,
+      fallbackY
+    ) {
+      if (groundMeshes.length === 0) {
+        return fallbackY;
+      }
+
+      groundRayOrigin.set(
+        x,
+        fallbackY +
+          groundRayStartHeight,
+        z
+      );
+
+      groundRaycaster.set(
+        groundRayOrigin,
+        groundRayDirection
+      );
+
+      groundRaycaster.near = 0;
+      groundRaycaster.far =
+        groundRayDistance;
+
+      const hits =
+        groundRaycaster.intersectObjects(
+          groundMeshes,
+          false
+        );
+
+      if (hits.length > 0) {
+        return hits[0].point.y;
+      }
+
+      return fallbackY;
+    }
+
+    function discoverTourLocations() {
+      tourLocations.length = 0;
+
+      const discoveredWaypoints = [];
+
+      spawnGroup.traverse(
+        function (object) {
+          const match =
+            object.name.match(
+              tourLocationPattern
+            );
+
+          if (!match) {
+            return;
+          }
+
+          object.getWorldPosition(
+            waypointWorldPosition
+          );
+
+          object.getWorldQuaternion(
+            waypointWorldQuaternion
+          );
+
+          discoveredWaypoints.push({
+            name: object.name,
+            number:
+              Number.parseInt(
+                match[1],
+                10
+              ),
+            position:
+              waypointWorldPosition.clone(),
+            quaternion:
+              waypointWorldQuaternion.clone()
+          });
+        }
+      );
+
+      /*
+        Sort numerically:
+        SPAWN_loc1, SPAWN_loc2, SPAWN_loc3, SPAWN_loc10...
+        instead of alphabetical order, which would place loc10
+        immediately after loc1.
+      */
+      discoveredWaypoints.sort(
+        function (a, b) {
+          if (a.number !== b.number) {
+            return a.number - b.number;
+          }
+
+          return a.name.localeCompare(
+            b.name
+          );
+        }
+      );
+
+      for (
+        const waypoint
+        of discoveredWaypoints
+      ) {
+        tourLocations.push(
+          waypoint
+        );
+      }
+
+      currentTourIndex = 0;
+
+      if (tourLocations.length > 0) {
+        const first =
+          tourLocations[0];
+
+        const groundY =
+          getGroundHeightAt(
+            first.position.x,
+            first.position.z,
+            first.position.y
+          );
+
+        walkSpawn.set(
+          first.position.x,
+          groundY + eyeHeight,
+          first.position.z
+        );
+      }
+
+      if (tourLocations.length === 0) {
+        console.warn(
+          "No tour points found. Name Empty objects " +
+          tourLocationPrefix +
+          "1, " +
+          tourLocationPrefix +
+          "2, and so on."
+        );
+      }
+
+      updateTourInterface();
+    }
+
+    function getTourDisplayName(index) {
+      return "Location " +
+        (index + 1);
+    }
+
+    function updateTourInterface() {
+      if (tourLocations.length === 0) {
+        tourPanel.style.display =
+          "none";
+
+        tourButton.disabled = true;
+        return;
+      }
+
+      tourPanel.style.display =
+        "block";
+
+      const nextIndex =
+        (currentTourIndex + 1) %
+        tourLocations.length;
+
+      const atFinalLocation =
+        currentTourIndex ===
+        tourLocations.length - 1;
+
+      tourProgress.textContent =
+        getTourDisplayName(
+          currentTourIndex
+        ) +
+        " of " +
+        tourLocations.length +
+        ". Press T to " +
+        (
+          atFinalLocation
+            ? "restart at Location 1."
+            : "jump to " +
+              getTourDisplayName(
+                nextIndex
+              ) +
+              "."
+        );
+
+      tourButton.textContent =
+        atFinalLocation
+          ? "Restart at Location 1"
+          : "Jump to " +
+            getTourDisplayName(
+              nextIndex
+            );
+
+      tourButton.disabled = false;
+    }
+
+    function applyTourDirection(location) {
+      /*
+        Transform the configured local arrow axis into world space,
+        then aim the camera along that horizontal direction.
+      */
+      waypointForward
+        .copy(
+          spawnArrowForwardAxis
+        )
+        .applyQuaternion(
+          location.quaternion
+        );
+
+      waypointForward.y = 0;
+
+      if (
+        waypointForward.lengthSq() <
+        0.000001
+      ) {
+        waypointForward.copy(
+          spawnArrowForwardAxis
+        );
+
+        waypointForward.y = 0;
+
+        if (
+          waypointForward.lengthSq() <
+          0.000001
+        ) {
+          waypointForward.set(
+            0,
+            0,
+            -1
+          );
+        } else {
+          waypointForward.normalize();
+        }
+      } else {
+        waypointForward.normalize();
+      }
+
+      camera.lookAt(
+        camera.position.x +
+          waypointForward.x,
+        camera.position.y,
+        camera.position.z +
+          waypointForward.z
+      );
+    }
+
+    function placeCameraAtTourLocation(
+      index,
+      forceWalkPlacement = false
+    ) {
+      const location =
+        tourLocations[index];
+
+      if (!location) {
+        return;
+      }
+
+      clearMovementKeys();
+      resetGroundSample();
+
+      const groundY =
+        getGroundHeightAt(
+          location.position.x,
+          location.position.z,
+          location.position.y
+        );
+
+      camera.position.set(
+        location.position.x,
+        groundY + eyeHeight,
+        location.position.z
+      );
+
+      applyTourDirection(
+        location
+      );
+
+      currentTourIndex = index;
+
+      const useWalkPlacement =
+        forceWalkPlacement ||
+        walkControls.isLocked;
+
+      if (useWalkPlacement) {
+        updateWalkShadows(true);
+      } else {
+        orbitControls.target.set(
+          location.position.x,
+          groundY + eyeHeight * 0.5,
+          location.position.z
+        );
+
+        camera.position.set(
+          location.position.x + 30,
+          groundY + 22,
+          location.position.z + 30
+        );
+
+        orbitControls.update();
+        configureOrbitShadows();
+      }
+
+      updateTourInterface();
+    }
+
+    function goToNextTourLocation() {
+      if (
+        tourLocations.length === 0 ||
+        fadeTransitionActive
+      ) {
+        return;
+      }
+
+      const nextIndex =
+        (currentTourIndex + 1) %
+        tourLocations.length;
+
+      fadeTransition(
+        function () {
+          placeCameraAtTourLocation(
+            nextIndex,
+            walkControls.isLocked
+          );
+        }
+      );
+    }
+
+    tourButton.addEventListener(
+      "click",
+      function () {
+        goToNextTourLocation();
+      }
+    );
+
+    Promise.all([
+      ...modelFiles.map(
+        function (filePath) {
+          return loadModel(
+            filePath,
+            false
+          );
+        }
+      ),
+      loadModel(
+        collisionFile,
+        true
+      ),
+      loadSpawnModel(
+        spawnFile
+      )
+    ])
+      .then(function (loadedModels) {
+        const spawnModel =
+          loadedModels.pop();
+
+        const collisionModel =
+          loadedModels.pop();
+
+        const visualModels =
+          loadedModels;
+
+        for (
+          const model
+          of visualModels
+        ) {
+          visualVillageGroup.add(model);
+        }
+
+        collisionModel.name =
+          "collision";
+
+        collisionGroup.add(
+          collisionModel
+        );
+
+        spawnGroup.add(
+          spawnModel
+        );
+
+        visualVillageGroup
+          .updateMatrixWorld(true);
+
+        const visualBox =
+          new THREE.Box3()
+            .setFromObject(
+              visualVillageGroup
+            );
+
+        const size =
+          visualBox.getSize(
+            new THREE.Vector3()
+          );
+
+        const center =
+          visualBox.getCenter(
+            new THREE.Vector3()
+          );
+
+        /*
+          Preserve the original Y elevation.
+          Center only on X and Z.
+        */
+        const centerOffsetX =
+          -center.x;
+
+        const centerOffsetZ =
+          -center.z;
+
+        visualVillageGroup.position.set(
+          centerOffsetX,
+          0,
+          centerOffsetZ
+        );
+
+        collisionGroup.position.set(
+          centerOffsetX,
+          0,
+          centerOffsetZ
+        );
+
+        spawnGroup.position.set(
+          centerOffsetX,
+          0,
+          centerOffsetZ
+        );
+
+        visualVillageGroup
+          .updateMatrixWorld(true);
+
+        collisionGroup
+          .updateMatrixWorld(true);
+
+        spawnGroup
+          .updateMatrixWorld(true);
+
+        buildCollisionGrid();
+
+        if (globalCollisionMeshes.length > 0) {
+          console.warn(
+            "Large collision meshes bypassing the spatial grid:",
+            globalCollisionMeshes.map(
+              function (mesh) {
+                return mesh.name || "(unnamed mesh)";
+              }
+            )
+          );
+        }
+
+        discoverTourLocations();
+
+        collisionLoaded =
+          collisionMeshes.length > 0;
+
+        const maxDimension =
+          Math.max(
+            size.x,
+            size.y,
+            size.z
+          );
+
+        /*
+          MAP-SCALE CAMERA RANGE
+
+          Keep the near plane as large as practical and scale the far
+          plane from the village size. This prevents distant geometry
+          from being clipped in Orbit mode.
+        */
+        camera.near =
+          Math.max(
+            0.15,
+            maxDimension / 8000
+          );
+
+        camera.far =
+          Math.max(
+            5000,
+            maxDimension * 8
+          );
+
+        camera.updateProjectionMatrix();
+
+        /*
+          Scale fog density from the village dimensions.
+          Larger maps receive lighter fog.
+        */
+        scene.fog.density =
+          Math.min(
+            0.00055,
+            0.5 / maxDimension
+          );
+
+        camera.position.set(
+          maxDimension * 0.9,
+          maxDimension * 0.65,
+          maxDimension * 0.9
+        );
+
+        orbitControls.target.set(
+          0,
+          size.y * 0.3,
+          0
+        );
+
+        villageShadowTarget.copy(
+          orbitControls.target
+        );
+
+        orbitControls.minDistance =
+          Math.max(
+            2,
+            maxDimension * 0.02
+          );
+
+        orbitControls.maxDistance =
+          maxDimension * 4;
+
+        orbitControls.update();
+
+        if (tourLocations.length === 0) {
+          walkSpawn.set(
+            0,
+            walkGroundY + eyeHeight,
+            maxDimension * 0.48
+          );
+        }
+
+        villageLoaded = true;
+
+        walkButton.disabled = false;
+        walkButton.textContent =
+          "Enter Walk Mode";
+
+        /*
+          Generate the wider Orbit-mode shadow map after every model
+          has loaded and received its final transform.
+        */
+        configureOrbitShadows();
+
+        /*
+          Compile visible materials while the cover screen is still
+          present, reducing the chance of a first-frame shader hitch.
+        */
+        renderer.compile(
+          scene,
+          camera
+        );
+
+        markIntroReady();
+
+        status.textContent =
+          "Loaded 5 models + collision + " +
+          tourLocations.length +
+          " tour locations — " +
+          size.x.toFixed(1) +
+          " × " +
+          size.y.toFixed(1) +
+          " × " +
+          size.z.toFixed(1) +
+          " meters";
+      })
+
+      .catch(function (result) {
+        console.error(
+          "Failed to load:",
+          result.filePath,
+          result.error
+        );
+
+        const failureMessage =
+          "Failed to load " +
+          result.filePath +
+          ".";
+
+        status.textContent =
+          failureMessage +
+          " Check the filename and browser console.";
+
+        markIntroFailed(
+          failureMessage
+        );
+      });
+
+    /*
+      GROUND FOLLOWING
+
+      A ray is cast downward against base.glb only. The camera height
+      is smoothed to avoid visible snapping on small surface changes.
+    */
+
+    function resetGroundSample() {
+      lastGroundSamplePosition.set(
+        Number.POSITIVE_INFINITY,
+        0,
+        Number.POSITIVE_INFINITY
+      );
+
+      cachedGroundTargetY = null;
+    }
+
+    function updateGroundHeight(delta) {
+      if (groundMeshes.length === 0) {
+        cachedGroundTargetY =
+          walkGroundY + eyeHeight;
+
+        camera.position.y =
+          cachedGroundTargetY;
+
+        return;
+      }
+
+      const deltaX =
+        camera.position.x -
+        lastGroundSamplePosition.x;
+
+      const deltaZ =
+        camera.position.z -
+        lastGroundSamplePosition.z;
+
+      const movedFarEnough =
+        deltaX * deltaX +
+        deltaZ * deltaZ >=
+        groundSampleDistance *
+        groundSampleDistance;
+
+      if (movedFarEnough) {
+        groundRayOrigin.set(
+          camera.position.x,
+          camera.position.y +
+            groundRayStartHeight,
+          camera.position.z
+        );
+
+        groundRaycaster.set(
+          groundRayOrigin,
+          groundRayDirection
+        );
+
+        groundRaycaster.near = 0;
+        groundRaycaster.far =
+          groundRayDistance;
+
+        const hits =
+          groundRaycaster.intersectObjects(
+            groundMeshes,
+            false
+          );
+
+        /*
+          Always remember where this query was made. If there is no
+          hit, retain the previous valid target rather than repeating
+          the same failed ray every frame.
+        */
+        lastGroundSamplePosition.set(
+          camera.position.x,
+          0,
+          camera.position.z
+        );
+
+        if (hits.length > 0) {
+          cachedGroundTargetY =
+            hits[0].point.y +
+            eyeHeight;
+        }
+      }
+
+      if (cachedGroundTargetY === null) {
+        return;
+      }
+
+      const smoothing =
+        1 -
+        Math.exp(
+          -groundHeightSmoothing *
+          delta
+        );
+
+      camera.position.y =
+        THREE.MathUtils.lerp(
+          camera.position.y,
+          cachedGroundTargetY,
+          smoothing
+        );
+    }
+
+    /*
+      COLLISION CHECKS
+    */
+
+    function movementIsBlocked(
+      direction,
+      distance
+    ) {
+      if (
+        !collisionLoaded ||
+        collisionMeshes.length === 0 ||
+        direction.lengthSq() === 0
+      ) {
+        return false;
+      }
+
+      testDirection.copy(direction);
+      testDirection.y = 0;
+
+      if (
+        testDirection.lengthSq() === 0
+      ) {
+        return false;
+      }
+
+      testDirection.normalize();
+
+      const feetY =
+        camera.position.y -
+        eyeHeight;
+
+      const checkDistance =
+        playerRadius +
+        collisionPadding +
+        distance;
+
+      const nearbyMeshes =
+        collectNearbyCollisionMeshes(
+          camera.position,
+          checkDistance +
+          collisionCellSize
+        );
+
+      if (
+        nearbyMeshes.length === 0
+      ) {
+        return false;
+      }
+
+      for (
+        const height
+        of collisionCheckHeights
+      ) {
+        testOrigin.set(
+          camera.position.x,
+          feetY + height,
+          camera.position.z
+        );
+
+        collisionRaycaster.set(
+          testOrigin,
+          testDirection
+        );
+
+        collisionRaycaster.near = 0;
+        collisionRaycaster.far =
+          checkDistance;
+
+        const hits =
+          collisionRaycaster
+            .intersectObjects(
+              nearbyMeshes,
+              false
+            );
+
+        if (hits.length > 0) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function tryMoveWithCollision(
+      movement
+    ) {
+      const distance =
+        movement.length();
+
+      if (distance === 0) {
+        return;
+      }
+
+      /*
+        Try the complete movement first.
+      */
+      if (
+        !movementIsBlocked(
+          movement,
+          distance
+        )
+      ) {
+        camera.position.add(
+          movement
+        );
+
+        return;
+      }
+
+      /*
+        If diagonal movement is blocked,
+        try X and Z separately so the player
+        can slide along walls.
+      */
+      xMovement.set(
+        movement.x,
+        0,
+        0
+      );
+
+      if (
+        xMovement.lengthSq() > 0 &&
+        !movementIsBlocked(
+          xMovement,
+          xMovement.length()
+        )
+      ) {
+        camera.position.add(
+          xMovement
+        );
+      }
+
+      zMovement.set(
+        0,
+        0,
+        movement.z
+      );
+
+      if (
+        zMovement.lengthSq() > 0 &&
+        !movementIsBlocked(
+          zMovement,
+          zMovement.length()
+        )
+      ) {
+        camera.position.add(
+          zMovement
+        );
+      }
+    }
+
+    /*
+      ANIMATION LOOP
+    */
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (!pageVisible) {
+        return;
+      }
+
+      const delta =
+        Math.min(
+          clock.getDelta(),
+          0.05
+        );
+
+      if (walkControls.isLocked) {
+        const hasMovementInput =
+          !fadeTransitionActive &&
+          (
+            keys.forward ||
+            keys.backward ||
+            keys.left ||
+            keys.right
+          );
+
+        if (hasMovementInput) {
+          const currentSpeed =
+            keys.run
+              ? runSpeed
+              : walkSpeed;
+
+          const distance =
+            currentSpeed * delta;
+
+          camera.getWorldDirection(
+            forwardDirection
+          );
+
+          forwardDirection.y = 0;
+
+          if (
+            forwardDirection.lengthSq() > 0
+          ) {
+            forwardDirection.normalize();
+          }
+
+          rightDirection.set(
+            -forwardDirection.z,
+            0,
+            forwardDirection.x
+          );
+
+          moveDirection.set(
+            0,
+            0,
+            0
+          );
+
+          if (keys.forward) {
+            moveDirection.add(
+              forwardDirection
+            );
+          }
+
+          if (keys.backward) {
+            moveDirection.sub(
+              forwardDirection
+            );
+          }
+
+          if (keys.right) {
+            moveDirection.add(
+              rightDirection
+            );
+          }
+
+          if (keys.left) {
+            moveDirection.sub(
+              rightDirection
+            );
+          }
+
+          if (
+            moveDirection.lengthSq() > 0
+          ) {
+            moveDirection
+              .normalize()
+              .multiplyScalar(
+                distance
+              );
+
+            tryMoveWithCollision(
+              moveDirection
+            );
+          }
+        }
+
+        /*
+          The function itself decides whether a new ground ray is
+          needed, while continuing smooth vertical interpolation.
+        */
+        updateGroundHeight(delta);
+
+        /*
+          Rebuild the local shadow map only after the player has moved
+          far enough. This avoids updating shadows every frame.
+        */
+        updateWalkShadows();
+      } else {
+        orbitControls.update();
+      }
+
+      renderer.render(
+        scene,
+        camera
+      );
+    }
+
+    animate();
+
+    document.addEventListener(
+      "visibilitychange",
+      function () {
+        pageVisible =
+          document.visibilityState ===
+          "visible";
+
+        if (pageVisible) {
+          /*
+            Discard the large elapsed delta accumulated while hidden.
+          */
+          clock.getDelta();
+          refreshCurrentShadows();
+        }
+      }
+    );
+
+    window.addEventListener(
+      "pagehide",
+      function () {
+        dracoLoader.dispose();
+      }
+    );
+
+    window.addEventListener(
+      "resize",
+      function () {
+        camera.aspect =
+          window.innerWidth /
+          window.innerHeight;
+
+        camera
+          .updateProjectionMatrix();
+
+        renderer.setPixelRatio(
+          Math.min(
+            window.devicePixelRatio,
+            1.25
+          )
+        );
+
+        renderer.setSize(
+          window.innerWidth,
+          window.innerHeight
+        );
+
+        refreshCurrentShadows();
+      }
+    );
+  </script>
+</body>
+</html>
